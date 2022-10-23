@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+
+# Note: Path names are relative to the project's top-level directory.
+
+migrate:
+  stage: build
+  image: docker:cli
+  services:
+    - docker:dind
+  before_script:
+    - docker version
+  script:
+    - docker build
+          --build-arg DEBIAN_CODENAME
+          --build-arg DEVUAN_CODENAME
+          --build-arg IMAGE_VARIANT
+          --tag devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT migrated
+  variables:
+    DEBIAN_CODENAME: bullseye
+    DEVUAN_CODENAME: chimaera
+    IMAGE_VARIANT: -slim
