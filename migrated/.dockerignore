@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+
+# Keep the Docker build context minimal by ignoring everything by
+# default and exempt only those bits that are really needed.
+
+*
+!migrate.sh
