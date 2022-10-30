@@ -3,3 +3,38 @@
 
 include:
   - local: migrated/.gitlab-ci.yaml
+
+build:
+  stage: build
+  image: docker:cli
+  services:
+    - docker:dind
+  before_script:
+    - docker version
+    - docker  build
+          --build-arg DEBIAN_CODENAME
+          --build-arg DEVUAN_CODENAME
+          --build-arg IMAGE_VARIANT
+          --tag $BUILD_ENVIRONMENT migrated
+  script:
+    - docker run --rm
+             --volume $PWD:/mnt
+             --workdir /mnt
+             $BUILD_ENVIRONMENT ./bootstrap.sh $DEVUAN_CODENAME rootfs
+    - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME .
+    - |
+      cat <<EOF > .dockerignore
+      *
+      !rootfs/$DEVUAN_CODENAME.tar
+      EOF
+    - |
+      cat <<EOF | docker build -t devuan:$DEVUAN_CODENAME -f - .
+      FROM scratch
+      ADD rootfs/$DEVUAN_CODENAME.tar /
+      CMD ["bash"]
+      EOF
+  variables:
+    DEBIAN_CODENAME: bullseye
+    DEVUAN_CODENAME: chimaera
+    IMAGE_VARIANT: -slim
+    BUILD_ENVIRONMENT: devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
