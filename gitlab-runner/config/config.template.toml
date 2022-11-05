@@ -19,5 +19,8 @@
     tls_verify = true
     privileged = true
 
-    # This must match the value of DOCKER_CERT_PATH above.
-    volumes = ["/certs/client"]
+    # This must include the value of DOCKER_CERT_PATH above.
+    volumes = [
+      "/certs/client",
+      "/etc/gitlab-runner/docker.json:/root/.docker/config.json:ro",
+    ]

@@ -15,8 +15,11 @@ migrate:
           --build-arg DEBIAN_CODENAME
           --build-arg DEVUAN_CODENAME
           --build-arg IMAGE_VARIANT
-          --tag devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT migrated
+          --tag ${CONTAINER_REGISTRY}/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
+          migrated
+    - docker push ${CONTAINER_REGISTRY}/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
   variables:
     DEBIAN_CODENAME: bullseye
     DEVUAN_CODENAME: chimaera
     IMAGE_VARIANT: -slim
+    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE

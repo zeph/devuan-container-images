@@ -3,3 +3,4 @@
 
 /.env
 /config/config.toml
+/config/docker.json

@@ -6,16 +6,13 @@ include:
 
 build:
   stage: build
+  needs:
+    - job: migrate
   image: docker:cli
   services:
     - docker:dind
   before_script:
     - docker version
-    - docker  build
-          --build-arg DEBIAN_CODENAME
-          --build-arg DEVUAN_CODENAME
-          --build-arg IMAGE_VARIANT
-          --tag $BUILD_ENVIRONMENT migrated
   script:
     - docker run --rm
              --volume $PWD:/mnt
@@ -28,13 +25,15 @@ build:
       !rootfs/$DEVUAN_CODENAME.tar
       EOF
     - |
-      cat <<EOF | docker build -t devuan:$DEVUAN_CODENAME -f - .
+      cat <<EOF | docker build -t $CONTAINER_REGISTRY/devuan:$DEVUAN_CODENAME -f - .
       FROM scratch
       ADD rootfs/$DEVUAN_CODENAME.tar /
       CMD ["bash"]
       EOF
+    - docker push $CONTAINER_REGISTRY/devuan:$DEVUAN_CODENAME
   variables:
     DEBIAN_CODENAME: bullseye
     DEVUAN_CODENAME: chimaera
     IMAGE_VARIANT: -slim
-    BUILD_ENVIRONMENT: devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
+    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+    BUILD_ENVIRONMENT: $CONTAINER_REGISTRY/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
