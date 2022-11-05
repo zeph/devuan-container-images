@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+
+[[runners]]
+  executor = "docker"
+  environment = [
+    # Settings for a secured on-demand Docker-in-Docker service.
+    # Note: The DOCKER_TLS_CERTDIR environment variable is added in
+    # the docker container images and used in their entrypoint.  We
+    # need to ensure it is consistent with DOCKER_CERT_PATH for the
+    # certificates to be generated in the correct place.
+    "DOCKER_HOST=tcp://docker:2376",
+    "DOCKER_TLS_VERIFY=true",
+    "DOCKER_TLS_CERTDIR=/certs",
+    "DOCKER_CERT_PATH=$DOCKER_TLS_CERTDIR/client",
+    ]
+  [runners.docker]
+    image = "hello-world"
+    tls_verify = true
+    privileged = true
+
+    # This must match the value of DOCKER_CERT_PATH above.
+    volumes = ["/certs/client"]
