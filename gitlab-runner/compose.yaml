@@ -10,9 +10,22 @@ services:
       - --non-interactive
       - --template-config
       - /etc/gitlab-runner/config.template.toml
+      # Settings for a secured on-demand Docker-in-Docker service.
+      # Note: The DOCKER_TLS_CERTDIR environment variable is added in
+      # the docker container images and used in their entrypoint.  We
+      # need to ensure it is consistent with DOCKER_CERT_PATH for the
+      # certificates to be generated in the correct place.
+      - --env=DOCKER_HOST=tcp://docker:2376
+      - --env=DOCKER_TLS_VERIFY=true
+      - --env=DOCKER_TLS_CERTDIR=/certs
+      - --env=DOCKER_CERT_PATH=$$DOCKER_TLS_CERTDIR/client
+      # Forward runner's value to the job's container.  This can be
+      # used to seed a $HOME/.docker/config.json if necessary.
+      - --env=DOCKER_CONFIG_JSON=$DOCKER_CONFIG_JSON
     environment:
       - CI_SERVER_URL=${CI_SERVER_URL:-https://gitlab.com/}
       - REGISTRATION_TOKEN
+      - DOCKER_CONFIG_JSON
     volumes:
       - ./config:/etc/gitlab-runner
 
