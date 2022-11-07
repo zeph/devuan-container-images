@@ -1,4 +1,4 @@
-#!/bin/sh -eux
+#!/bin/sh -eu
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
 
