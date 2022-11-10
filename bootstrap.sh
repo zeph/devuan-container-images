@@ -70,6 +70,13 @@ debootstrap \
     --variant=minbase \
     "$DEVUAN_CODENAME" "$ROOTFS_LOCATION" http://deb.devuan.org/merged
 
+# Clean out the root filesystem to prevent the most egregrious,
+# unneeded disk hogs.  Note that the shell glob expansion needs
+# to be done *inside* the chroot.
+
+chroot $ROOTFS_LOCATION apt-get clean
+chroot $ROOTFS_LOCATION sh -c 'rm /var/lib/apt/lists/*_dists_*'
+
 # Remove any requirements that were installed by us.
 
 if test -n "$KEYRING_FILE"; then
