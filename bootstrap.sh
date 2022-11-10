@@ -66,7 +66,12 @@ fi
 
 mkdir -p "$ROOTFS_LOCATION"
 
+# Packages related to booting and running PID 1 are pointless for
+# container images in most use cases.  Explicitly exclude the few
+# that are known to get included otherwise.
+
 debootstrap \
+    --exclude=bootlogd,initscripts,sysv-rc,sysvinit-core \
     --variant=minbase \
     "$DEVUAN_CODENAME" "$ROOTFS_LOCATION" http://deb.devuan.org/merged
 
