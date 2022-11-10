@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
 
-test -n "${DEBUG+true}" && set +x
+test -n "${DEBUG+true}" && set -x
 
 DEVUAN_CODENAME=${1:-chimaera}
 ROOTFS_LOCATION=${2:-rootfs}/$DEVUAN_CODENAME
