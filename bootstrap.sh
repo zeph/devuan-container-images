@@ -73,6 +73,7 @@ mkdir -p "$ROOTFS_LOCATION"
 debootstrap \
     --exclude=bootlogd,initscripts,sysv-rc,sysvinit-core \
     --variant=minbase \
+    --extra-suites="$DEVUAN_CODENAME-security,$DEVUAN_CODENAME-updates" \
     "$DEVUAN_CODENAME" "$ROOTFS_LOCATION" http://deb.devuan.org/merged
 
 # Clean out the root filesystem to prevent the most egregrious,
