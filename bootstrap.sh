@@ -74,7 +74,21 @@ debootstrap \
     --exclude=bootlogd,initscripts,sysv-rc,sysvinit-core \
     --variant=minbase \
     --extra-suites="$DEVUAN_CODENAME-security,$DEVUAN_CODENAME-updates" \
+    --components=main \
     "$DEVUAN_CODENAME" "$ROOTFS_LOCATION" http://deb.devuan.org/merged
+
+# Fix up duplicate components when --extra-suites are given.  This has
+# been fixed in version 1.0.127 of debootstrap.
+
+sed -i '/^deb/s/\( main\) .*$/\1/' "$ROOTFS_LOCATION/etc/apt/sources.list"
+
+# Upgrade installed packages.  The debootstrap download logic uses the
+# first matching package name in the Packages files for all suites and
+# gets the package metadata (URL, checksum, etc) from that.  The extra
+# suites are searched last so security and any other updates are never
+# considered for download!
+
+chroot $ROOTFS_LOCATION apt-get upgrade --quiet --assume-yes
 
 # Clean out the root filesystem to prevent the most egregrious,
 # unneeded disk hogs.  Note that the shell glob expansion needs
