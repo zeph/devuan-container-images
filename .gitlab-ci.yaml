@@ -20,6 +20,7 @@ build:
              $BUILD_ENVIRONMENT ./bootstrap.sh $DEVUAN_CODENAME rootfs
     - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME
           --exclude-from rootfs-excludes .
+    - tar -raf rootfs/$DEVUAN_CODENAME.tar --directory overlay .
     - |
       cat <<EOF > .dockerignore
       *
