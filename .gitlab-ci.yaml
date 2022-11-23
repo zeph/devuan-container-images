@@ -18,7 +18,8 @@ build:
              --volume $PWD:/mnt
              --workdir /mnt
              $BUILD_ENVIRONMENT ./bootstrap.sh $DEVUAN_CODENAME rootfs
-    - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME .
+    - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME
+          --exclude-from rootfs-excludes .
     - |
       cat <<EOF > .dockerignore
       *
