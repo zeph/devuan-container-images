@@ -18,9 +18,9 @@ build:
              --volume $PWD:/mnt
              --workdir /mnt
              $BUILD_ENVIRONMENT ./bootstrap.sh $DEVUAN_CODENAME rootfs
+    - cp -a overlay/* rootfs/$DEVUAN_CODENAME
     - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME
           --exclude-from rootfs-excludes .
-    - tar -raf rootfs/$DEVUAN_CODENAME.tar --directory overlay .
     - |
       cat <<EOF > .dockerignore
       *
