@@ -90,6 +90,13 @@ sed -i '/^deb/s/\( main\) .*$/\1/' "$ROOTFS_LOCATION/etc/apt/sources.list"
 
 chroot $ROOTFS_LOCATION apt-get upgrade --quiet --assume-yes
 
+# Mark all packages as automatically installed so that they can become
+# candidates for auto-removal.  Make sure to keep our keyring package.
+# This generates a /var/lib/apt/extended_states file as a side-effect.
+
+chroot $ROOTFS_LOCATION sh -c "dpkg-query -W -f '\${Package}\n' | xargs apt-mark auto"
+chroot $ROOTFS_LOCATION apt-mark manual devuan-keyring
+
 # Clean out the root filesystem to prevent the most egregrious,
 # unneeded disk hogs.  Note that the shell glob expansion needs
 # to be done *inside* the chroot.
