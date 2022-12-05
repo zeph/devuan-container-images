@@ -18,7 +18,7 @@ build:
     - docker run --rm
              --volume $PWD:/mnt
              --workdir /mnt
-             $BUILD_ENVIRONMENT ./bootstrap.sh $DEVUAN_CODENAME rootfs
+             $MIGRATED_TAG ./bootstrap.sh $DEVUAN_CODENAME rootfs
     - cp -a overlay/* rootfs/$DEVUAN_CODENAME
     - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME
           --exclude-from rootfs-excludes .
@@ -28,21 +28,64 @@ build:
       !rootfs/$DEVUAN_CODENAME.tar
       EOF
     - |
-      cat <<EOF | docker build -t $CONTAINER_REGISTRY/devuan:$DEVUAN_CODENAME -f - .
+      cat <<EOF | docker build -t $TESTABLE_TAG -f - .
       FROM scratch
       ADD rootfs/$DEVUAN_CODENAME.tar /
       CMD ["bash"]
       EOF
-    - docker push $CONTAINER_REGISTRY/devuan:$DEVUAN_CODENAME
+    - docker push $TESTABLE_TAG
   variables:
     DEBIAN_CODENAME: bullseye
     DEVUAN_CODENAME: chimaera
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
-    BUILD_ENVIRONMENT: $CONTAINER_REGISTRY/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
+    TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
+    MIGRATED_TAG: $CONTAINER_REGISTRY/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
     - changes:
         - .gitlab-ci.yaml
         - bootstrap.sh
         - rootfs-excludes
         - overlay/**/*
+
+test:
+  stage: test
+  needs:
+    - job: build
+  image: $TESTABLE_TAG
+  script:
+    - apt-get update
+    - apt-get install hello
+  variables:
+    DEVUAN_CODENAME: chimaera
+    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+    TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
+
+deploy:
+  stage: deploy
+  needs:
+    - job: test
+  image: docker:cli
+  services:
+    - docker:dind
+  before_script:
+    - docker pull $TESTED_TAG
+    - TIMESTAMP=$(date -u +%F)
+  script:
+    - docker tag  $TESTED_TAG $IMAGE_BASE:$DEVUAN_CODENAME-$TIMESTAMP
+    - docker push --quiet     $IMAGE_BASE:$DEVUAN_CODENAME-$TIMESTAMP
+    - docker tag  $TESTED_TAG $IMAGE_BASE:$DEVUAN_CODENAME
+    - docker push --quiet     $IMAGE_BASE:$DEVUAN_CODENAME
+    - docker tag  $TESTED_TAG $IMAGE_BASE:$DEVUAN_SUITE
+    - docker push --quiet     $IMAGE_BASE:$DEVUAN_SUITE
+    - |
+      if test "$DEVUAN_SUITE" = "stable"; then
+          docker tag  $TESTED_TAG $IMAGE_BASE:latest
+          docker push --quiet     $IMAGE_BASE:latest
+      fi
+  variables:
+    DEVUAN_CODENAME: chimaera
+    DEVUAN_SUITE: stable
+    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+    TESTED_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
+    IMAGE_BASE: $CONTAINER_REGISTRY/devuan
