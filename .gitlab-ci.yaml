@@ -8,6 +8,7 @@ build:
   stage: build
   needs:
     - job: migrate
+      optional: true
   image: docker:cli
   services:
     - docker:dind
@@ -39,3 +40,9 @@ build:
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     BUILD_ENVIRONMENT: $CONTAINER_REGISTRY/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
+  rules:
+    - changes:
+        - .gitlab-ci.yaml
+        - bootstrap.sh
+        - rootfs-excludes
+        - overlay/**/*

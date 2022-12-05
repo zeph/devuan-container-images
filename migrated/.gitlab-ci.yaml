@@ -23,3 +23,6 @@ migrate:
     DEVUAN_CODENAME: chimaera
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+  rules:
+    - changes:
+        - migrated/**/*
