@@ -17,13 +17,26 @@ migrate:
           --build-arg IMAGE_VARIANT
           --tag $MIGRATED_TAG
           migrated
-    - docker push $MIGRATED_TAG
+    - TIMESTAMP=$(date -u +%F)
+    - docker tag $MIGRATED_TAG $MIGRATED_TAG-$TIMESTAMP
+    - docker push --quiet      $MIGRATED_TAG-$TIMESTAMP
+    - docker push --quiet      $MIGRATED_TAG
+    - docker tag $MIGRATED_TAG $IMAGE_BASE:$DEVUAN_SUITE$IMAGE_VARIANT
+    - docker push --quiet      $IMAGE_BASE:$DEVUAN_SUITE$IMAGE_VARIANT
+    - |
+      : ${IMAGE_VARIANT:=latest}
+      if test "$DEVUAN_SUITE" = "stable"; then
+          docker tag $MIGRATED_TAG $IMAGE_BASE:${IMAGE_VARIANT#-}
+          docker push --quiet      $IMAGE_BASE:${IMAGE_VARIANT#-}
+      fi
   variables:
     DEBIAN_CODENAME: bullseye
     DEVUAN_CODENAME: chimaera
+    DEVUAN_SUITE: stable
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
-    MIGRATED_TAG: $CONTAINER_REGISTRY/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
+    IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated
+    MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
     - changes:
         - migrated/**/*
