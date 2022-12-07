@@ -42,6 +42,10 @@ build:
     TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
     MIGRATED_TAG: $CONTAINER_REGISTRY/devuan/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
+    - !reference [.build-rules, rules]
+
+.build-rules:
+  rules:
     - changes:
         - .gitlab-ci.yaml
         - bootstrap.sh
@@ -60,6 +64,8 @@ test:
     DEVUAN_CODENAME: chimaera
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
+  rules:
+    - !reference [.build-rules, rules]
 
 deploy:
   stage: deploy
@@ -92,3 +98,4 @@ deploy:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
+    - !reference [.build-rules, rules]
