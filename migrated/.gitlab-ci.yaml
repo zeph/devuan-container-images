@@ -39,4 +39,5 @@ migrate:
     MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
     - changes:
+        - .gitlab-ci.yaml
         - migrated/**/*
