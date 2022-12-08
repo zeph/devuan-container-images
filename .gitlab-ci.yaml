@@ -46,9 +46,11 @@ build:
 
 .build-rules:
   rules:
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "build"
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
-    - changes:
+    - if: $CI_PIPELINE_SOURCE != "trigger"
+      changes:
         - .gitlab-ci.yaml
         - bootstrap.sh
         - rootfs-excludes
@@ -101,3 +103,29 @@ deploy:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
     - !reference [.build-rules, rules]
+
+# Note: The TRIGGER_TOKEN is set via CI/CD Variables.  It should only
+# be set on protected branches and masked to keep it out of job logs.
+check-upgradability:
+  stage: test
+  image: $DEPLOYED_IMAGE
+  script:
+    - apt-get --quiet update
+    - |
+      if test 0 -lt "$(apt list --upgradable 2>/dev/null \
+                           | grep upgradable | wc -l)"; then
+          apt-get --quiet install curl ca-certificates \
+                  --assume-yes --no-install-recommends
+          curl --request POST \
+               --form token="$TRIGGER_TOKEN" \
+               --form ref="$CI_DEFAULT_BRANCH" \
+               --form "variables[ACTION]=build" \
+               "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
+      fi
+  variables:
+    DEVUAN_CODENAME: chimaera
+    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+    IMAGE_BASE: $CONTAINER_REGISTRY/devuan
+    DEPLOYED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
