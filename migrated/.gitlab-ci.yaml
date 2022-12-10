@@ -50,7 +50,7 @@ migrate:
 # be set on protected branches and masked to keep it out of job logs.
 check-migrated-upgradability:
   stage: test
-  image: $MIGRATED_IMAGE
+  image: $MIGRATED_TAG
   script:
     - apt-get --quiet update
     - |

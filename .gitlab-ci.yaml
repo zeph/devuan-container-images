@@ -108,7 +108,7 @@ deploy:
 # be set on protected branches and masked to keep it out of job logs.
 check-upgradability:
   stage: test
-  image: $DEPLOYED_IMAGE
+  image: $DEPLOYED_TAG
   script:
     - apt-get --quiet update
     - |
