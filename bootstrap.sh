@@ -65,6 +65,7 @@ fi
 # Create a Devuan root filesystem
 
 mkdir -p "$TARGET"
+mkdir -p "$PWD/_caches/apt/archives"
 
 # Packages related to booting and running PID 1 are pointless for
 # container images in most use cases.  Explicitly exclude the few
@@ -72,6 +73,7 @@ mkdir -p "$TARGET"
 
 debootstrap \
     --exclude=bootlogd,initscripts,sysv-rc,sysvinit-core \
+    --cache-dir="$PWD/_caches/apt/archives" \
     --variant=minbase \
     --extra-suites="$DEVUAN_CODENAME-security,$DEVUAN_CODENAME-updates" \
     --components=main \
