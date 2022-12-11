@@ -18,19 +18,20 @@ build:
     - docker run --rm
              --volume $PWD:/mnt
              --workdir /mnt
-             $MIGRATED_TAG ./bootstrap.sh $DEVUAN_CODENAME rootfs
-    - cp -a overlay/* rootfs/$DEVUAN_CODENAME
-    - tar -caf rootfs/$DEVUAN_CODENAME.tar --directory rootfs/$DEVUAN_CODENAME
-          --exclude-from rootfs-excludes .
+             $MIGRATED_TAG ./bootstrap.sh $DEVUAN_CODENAME _targets
+    - cp -a overlays/base/* _targets/$DEVUAN_CODENAME
+    - cp -a overlays/$DEVUAN_CODENAME/* _targets/$DEVUAN_CODENAME
+    - tar -caf _targets/$DEVUAN_CODENAME.tar --directory _targets/$DEVUAN_CODENAME
+          --exclude-from excludes/base --exclude-from excludes/$DEVUAN_CODENAME .
     - |
       cat <<EOF > .dockerignore
       *
-      !rootfs/$DEVUAN_CODENAME.tar
+      !_targets/$DEVUAN_CODENAME.tar
       EOF
     - |
       cat <<EOF | docker build -t $TESTABLE_TAG -f - .
       FROM scratch
-      ADD rootfs/$DEVUAN_CODENAME.tar /
+      ADD _targets/$DEVUAN_CODENAME.tar /
       CMD ["bash"]
       EOF
     - docker push $TESTABLE_TAG
@@ -53,8 +54,10 @@ build:
       changes:
         - .gitlab-ci.yaml
         - bootstrap.sh
-        - rootfs-excludes
-        - overlay/**/*
+        - excludes/base
+        - excludes/$DEVUAN_CODENAME
+        - overlays/base/**/*
+        - overlays/$DEVUAN_CODENAME/**/*
 
 test:
   stage: test
