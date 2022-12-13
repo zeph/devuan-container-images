@@ -29,10 +29,15 @@ migrate:
           docker tag $MIGRATED_TAG $IMAGE_BASE:${IMAGE_VARIANT#-}
           docker push --quiet      $IMAGE_BASE:${IMAGE_VARIANT#-}
       fi
+  parallel:
+    matrix:
+      - DEBIAN_CODENAME: bullseye
+        DEVUAN_CODENAME: chimaera
+        DEVUAN_SUITE: stable
+      - DEBIAN_CODENAME: buster
+        DEVUAN_CODENAME: beowulf
+        DEVUAN_SUITE: oldstable
   variables:
-    DEBIAN_CODENAME: bullseye
-    DEVUAN_CODENAME: chimaera
-    DEVUAN_SUITE: stable
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated
@@ -64,8 +69,12 @@ check-migrated-upgradability:
                --form "variables[ACTION]=migrate" \
                "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
       fi
+  parallel:
+    matrix:
+      - DEVUAN_CODENAME:
+          - chimaera
+          - beowulf
   variables:
-    DEVUAN_CODENAME: chimaera
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated

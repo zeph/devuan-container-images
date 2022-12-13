@@ -35,9 +35,12 @@ build:
       CMD ["bash"]
       EOF
     - docker push $TESTABLE_TAG
+  parallel:
+    matrix:
+      - DEVUAN_CODENAME:
+          - chimaera
+          - beowulf
   variables:
-    DEBIAN_CODENAME: bullseye
-    DEVUAN_CODENAME: chimaera
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
@@ -67,8 +70,12 @@ test:
   script:
     - apt-get update
     - apt-get install hello
+  parallel:
+    matrix:
+      - DEVUAN_CODENAME:
+          - chimaera
+          - beowulf
   variables:
-    DEVUAN_CODENAME: chimaera
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
   rules:
@@ -96,9 +103,13 @@ deploy:
           docker tag  $TESTED_TAG $IMAGE_BASE:latest
           docker push --quiet     $IMAGE_BASE:latest
       fi
+  parallel:
+    matrix:
+      - DEVUAN_CODENAME: chimaera
+        DEVUAN_SUITE: stable
+      - DEVUAN_CODENAME: beowulf
+        DEVUAN_SUITE: oldstable
   variables:
-    DEVUAN_CODENAME: chimaera
-    DEVUAN_SUITE: stable
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTED_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan
@@ -125,8 +136,12 @@ check-upgradability:
                --form "variables[ACTION]=build" \
                "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
       fi
+  parallel:
+    matrix:
+      - DEVUAN_CODENAME:
+          - chimaera
+          - beowulf
   variables:
-    DEVUAN_CODENAME: chimaera
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan
     DEPLOYED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME
