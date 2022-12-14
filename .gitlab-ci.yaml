@@ -64,8 +64,6 @@ build:
 
 test:
   stage: test
-  needs:
-    - job: build
   image: $TESTABLE_TAG
   script:
     - apt-get update
@@ -83,8 +81,6 @@ test:
 
 deploy:
   stage: deploy
-  needs:
-    - job: test
   image: docker:cli
   services:
     - docker:dind
