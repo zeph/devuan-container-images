@@ -5,7 +5,7 @@
 test -n "${DEBUG+true}" && set -x
 
 DEVUAN_CODENAME=${1:-chimaera}
-ROOTFS_LOCATION=${2:-rootfs}/$DEVUAN_CODENAME
+TARGET=${2:-_targets}/$DEVUAN_CODENAME
 
 DEBIAN_FRONTEND=noninteractive
 export DEBIAN_FRONTEND
@@ -64,7 +64,8 @@ fi
 
 # Create a Devuan root filesystem
 
-mkdir -p "$ROOTFS_LOCATION"
+mkdir -p "$TARGET"
+mkdir -p "$PWD/_caches/apt/archives"
 
 # Packages related to booting and running PID 1 are pointless for
 # container images in most use cases.  Explicitly exclude the few
@@ -72,55 +73,34 @@ mkdir -p "$ROOTFS_LOCATION"
 
 debootstrap \
     --exclude=bootlogd,initscripts,sysv-rc,sysvinit-core \
+    --cache-dir="$PWD/_caches/apt/archives" \
     --variant=minbase \
-    --extra-suites="$DEVUAN_CODENAME-security,$DEVUAN_CODENAME-updates" \
     --components=main \
-    "$DEVUAN_CODENAME" "$ROOTFS_LOCATION" http://deb.devuan.org/merged
+    "$DEVUAN_CODENAME" "$TARGET" http://deb.devuan.org/merged
 
-# Fix up duplicate components when --extra-suites are given.  This has
-# been fixed in version 1.0.127 of debootstrap.
+## Add security and updates suites and upgrade installed packages.
 
-sed -i '/^deb/s/\( main\) .*$/\1/' "$ROOTFS_LOCATION/etc/apt/sources.list"
+for suite in security updates; do
+    sed -n "s/ $DEVUAN_CODENAME / $DEVUAN_CODENAME-$suite /p" \
+        "$TARGET/etc/apt/sources.list" >> "$TARGET/etc/apt/sources.list"
+done
 
-# Upgrade installed packages.  The debootstrap download logic uses the
-# first matching package name in the Packages files for all suites and
-# gets the package metadata (URL, checksum, etc) from that.  The extra
-# suites are searched last so security and any other updates are never
-# considered for download!
-
-chroot $ROOTFS_LOCATION apt-get upgrade --quiet --assume-yes
-
-# Remove duplicate entries from /var/lib/dpkg/available.  These result
-# from buggy behaviour of debootstrap versions before 1.0.27 when the
-# --extra-suites option is used.
-(
-    cd $ROOTFS_LOCATION
-    awk -v RS= '{print > ("tmp/package-" NR ".txt")}' \
-        var/lib/dpkg/available
-    true > var/lib/dpkg/available
-    chroot . dpkg-query -W -f '${Package} ${Version}\n' \
-        | while read package version; do
-            grep -l "^Package: $package$" tmp/package-*.txt \
-                | xargs grep -l "^Version: $version$" \
-                | head -1 | xargs cat >> var/lib/dpkg/available
-            echo >> var/lib/dpkg/available
-        done
-    rm -f tmp/package-*.txt
-)
+chroot $TARGET apt-get --quiet update
+chroot $TARGET apt-get --quiet upgrade --assume-yes
 
 # Mark all packages as automatically installed so that they can become
 # candidates for auto-removal.  Make sure to keep our keyring package.
 # This generates a /var/lib/apt/extended_states file as a side-effect.
 
-chroot $ROOTFS_LOCATION sh -c "dpkg-query -W -f '\${Package}\n' | xargs apt-mark auto"
-chroot $ROOTFS_LOCATION apt-mark manual devuan-keyring
+chroot $TARGET sh -c "dpkg-query -W -f '\${Package}\n' | xargs apt-mark auto"
+chroot $TARGET apt-mark manual devuan-keyring
 
 # Clean out the root filesystem to prevent the most egregrious,
 # unneeded disk hogs.  Note that the shell glob expansion needs
 # to be done *inside* the chroot.
 
-chroot $ROOTFS_LOCATION apt-get clean
-chroot $ROOTFS_LOCATION sh -c 'rm /var/lib/apt/lists/*_dists_*'
+chroot $TARGET apt-get clean
+chroot $TARGET sh -c 'rm /var/lib/apt/lists/*_dists_*'
 
 # Remove any requirements that were installed by us.
 

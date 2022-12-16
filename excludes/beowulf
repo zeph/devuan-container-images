@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
 
-./dev/**
-./run/mount
 ./var/cache/apt/**
 ./var/cache/ldconfig/aux-cache
 ./var/lib/apt/lists/**

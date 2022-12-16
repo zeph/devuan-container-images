@@ -38,8 +38,8 @@ if test -n "$REQUIREMENTS"; then
 fi
 
 curl --silent --location --show-error \
-     --output-dir /etc/apt/trusted.gpg.d/ \
-     --remote-name https://files.devuan.org/devuan-archive-keyring.gpg
+     --output /etc/apt/trusted.gpg.d/devuan-archive-keyring.gpg \
+     https://files.devuan.org/devuan-archive-keyring.gpg
 
 if test -n "$REQUIREMENTS"; then
     apt-get --quiet purge $REQUIREMENTS \
