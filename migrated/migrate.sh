@@ -56,7 +56,7 @@ for suite in "" "-security" "-updates"; do
 
     case "$code" in
         200)
-            echo >&2 "adding $DEVUAN_DEB_REPO$suite"
+            echo >&2 "adding $DEVUAN_CODENAME$suite"
             echo "deb $DEVUAN_DEB_REPO $DEVUAN_CODENAME$suite main" \
                  >> /etc/apt/sources.list
             ;;

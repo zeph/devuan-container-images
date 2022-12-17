@@ -91,7 +91,7 @@ for suite in "-security" "-updates"; do
 
     case "$code" in
         200)
-            echo >&2 "adding $DEVUAN_DEB_REPO$suite"
+            echo >&2 "adding $DEVUAN_CODENAME$suite"
             sed -n "s/ $DEVUAN_CODENAME / $DEVUAN_CODENAME$suite /p" \
                 "$TARGET/etc/apt/sources.list" >> "$TARGET/etc/apt/sources.list"
             ;;
