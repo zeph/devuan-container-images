@@ -41,6 +41,7 @@ build:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
@@ -75,6 +76,7 @@ test:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
@@ -109,6 +111,8 @@ deploy:
         DEVUAN_SUITE: stable
       - DEVUAN_CODENAME: beowulf
         DEVUAN_SUITE: oldstable
+      - DEVUAN_CODENAME: ascii
+        DEVUAN_SUITE: oldoldstable
   variables:
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTED_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
@@ -142,6 +146,7 @@ check-upgradability:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan

@@ -117,7 +117,7 @@ fi
 
 (. /etc/os-release
  test "$ID" = devuan
- if test -n "$VERSION_CODENAME"; then
+ if test -n "${VERSION_CODENAME:-}"; then
      case "$VERSION_CODENAME" in
          $DEVUAN_CODENAME)    : ;;
          $DEVUAN_CODENAME\ *) : ;;
