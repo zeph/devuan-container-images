@@ -114,14 +114,14 @@ if test -n "$local_packages"; then
 fi
 
 # Confirm we are on the expected Devuan release now.
-. /etc/os-release
-test "$ID" = devuan
-case "$VERSION_CODENAME" in
-    $DEVUAN_CODENAME)    : ;;
-    $DEVUAN_CODENAME\ *) : ;;
-    *\ $DEVUAN_CODENAME) : ;;
-    *) exit 1 ;;
-esac
+(. /etc/os-release
+ test "$ID" = devuan
+ case "$VERSION_CODENAME" in
+     $DEVUAN_CODENAME)    : ;;
+     $DEVUAN_CODENAME\ *) : ;;
+     *\ $DEVUAN_CODENAME) : ;;
+     *) exit 1 ;;
+ esac)
 
 # Clean up
 
