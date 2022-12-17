@@ -40,6 +40,9 @@ migrate:
       - DEBIAN_CODENAME: buster
         DEVUAN_CODENAME: beowulf
         DEVUAN_SUITE: oldstable
+      - DEBIAN_CODENAME: stretch
+        DEVUAN_CODENAME: ascii
+        DEVUAN_SUITE: oldoldstable
   variables:
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
@@ -78,6 +81,7 @@ check-migrated-upgradability:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
