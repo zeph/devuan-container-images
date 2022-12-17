@@ -38,6 +38,7 @@ build:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - daedalus
           - chimaera
           - beowulf
   variables:
@@ -71,6 +72,7 @@ test:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - daedalus
           - chimaera
           - beowulf
   variables:
@@ -101,6 +103,8 @@ deploy:
       fi
   parallel:
     matrix:
+      - DEVUAN_CODENAME: daedalus
+        DEVUAN_SUITE: testing
       - DEVUAN_CODENAME: chimaera
         DEVUAN_SUITE: stable
       - DEVUAN_CODENAME: beowulf
@@ -135,6 +139,7 @@ check-upgradability:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - daedalus
           - chimaera
           - beowulf
   variables:

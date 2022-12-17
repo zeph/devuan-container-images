@@ -6,6 +6,7 @@ test -n "${DEBUG+true}" && set -x
 
 DEBIAN_CODENAME=${1:-bullseye}
 DEVUAN_CODENAME=${2:-chimaera}
+DEVUAN_DEB_REPO=http://deb.devuan.org/merged
 
 DEBIAN_FRONTEND=noninteractive
 export DEBIAN_FRONTEND
@@ -41,36 +42,88 @@ curl --silent --location --show-error \
      --output /etc/apt/trusted.gpg.d/devuan-archive-keyring.gpg \
      https://files.devuan.org/devuan-archive-keyring.gpg
 
+# Replace the Debian APT sources with those for Devuan.
+# Non-released "releases" may be missing *-security and/or *-updates.
+# Only add those suites that are available in the package repository.
+
+> /etc/apt/sources.list
+rm -f /etc/apt/sources.list.d/*
+
+for suite in "" "-security" "-updates"; do
+    code=$(curl --silent --location --show-error --head \
+                --output /dev/null --write-out "%{http_code}" \
+                $DEVUAN_DEB_REPO/dists/$DEVUAN_CODENAME$suite/InRelease)
+
+    case "$code" in
+        200)
+            echo >&2 "adding $DEVUAN_CODENAME$suite"
+            echo "deb $DEVUAN_DEB_REPO $DEVUAN_CODENAME$suite main" \
+                 >> /etc/apt/sources.list
+            ;;
+        404)
+            if test -n "$suite"; then
+                echo >&2 "skipping $DEVUAN_CODENAME$suite ($code)"
+            else
+                echo >&2 "$DEVUAN_CODENAME$suite: Not Found ($code)!"
+                exit 1
+            fi
+            ;;
+        *)
+            echo >&2 "ignoring $DEVUAN_CODENAME$suite ($code)"
+            ;;
+    esac
+done
+
+# Remove any requirements that were temporarily installed.
+
 if test -n "$REQUIREMENTS"; then
     apt-get --quiet purge $REQUIREMENTS \
             --assume-yes --auto-remove
     test -s /tmp/apt-mark.auto \
          && apt-mark auto $(cat /tmp/apt-mark.auto) > /dev/null
+    rm -f /tmp/apt-mark.auto
 fi
-
-# Replace the Debian APT sources with those for Devuan.
-
-cat << EOF > /etc/apt/sources.list
-deb http://deb.devuan.org/merged $DEVUAN_CODENAME          main
-deb http://deb.devuan.org/merged $DEVUAN_CODENAME-updates  main
-deb http://deb.devuan.org/merged $DEVUAN_CODENAME-security main
-EOF
-rm -f /etc/apt/sources.list.d/*
 
 # Migrate from Debian to Devuan.
 
 apt-get --quiet update
 apt-get --quiet upgrade --assume-yes
-
-# Confirm we are on Devuan now.
-
-(. /etc/os-release \
-     && test "$ID" = devuan \
-     && test "$VERSION_CODENAME" = "$DEVUAN_CODENAME")
-
-# Finish up the migration.
-
 apt-get --quiet dist-upgrade --assume-yes
+
+# Downgrade any installed packages that are not in the Devuan APT
+# sources.  Such packages are marked as "local" by APT and should
+# have been replaced by a Devuanized version.  However, when that
+# version is older than the Debian version, it is not included in
+# the upgrades :-/
+
+apt-mark showauto > /tmp/apt-mark.auto
+apt-get --quiet install --assume-yes --allow-downgrades \
+        $(apt list --installed 2>/dev/null \
+              | sed -n "/,local]/s/[^/]*$/$DEVUAN_CODENAME/p")
+apt-mark auto $(cat /tmp/apt-mark.auto) >/dev/null
+rm -f /tmp/apt-mark.auto
+
+# If there are *still* "local" packages at this point, something
+# probably went wrong.
+
+local_packages=$(apt list --installed 2>/dev/null \
+                     | sed -n '/,local]/s/[^/]*$//p')
+if test -n "$local_packages"; then
+    echo >&2 "local packages remaining: $local_packages"
+    exit 1
+fi
+
+# Confirm we are on the expected Devuan release now.
+(. /etc/os-release
+ test "$ID" = devuan
+ case "$VERSION_CODENAME" in
+     $DEVUAN_CODENAME)    : ;;
+     $DEVUAN_CODENAME\ *) : ;;
+     *\ $DEVUAN_CODENAME) : ;;
+     *) exit 1 ;;
+ esac)
+
+# Clean up
 
 if test -f /.dockerenv; then
     # Clean up more thoroughly to reduce container image size.
