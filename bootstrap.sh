@@ -16,12 +16,19 @@ export DEBIAN_FRONTEND
 
 (. /etc/os-release
  test "$ID" = devuan
- case "$VERSION_CODENAME" in
-     $DEVUAN_CODENAME)    : ;;
-     $DEVUAN_CODENAME\ *) : ;;
-     *\ $DEVUAN_CODENAME) : ;;
-     *) exit 1 ;;
- esac)
+ if test -n "${VERSION_CODENAME:-}"; then
+     case "$VERSION_CODENAME" in
+         $DEVUAN_CODENAME)    : ;;
+         $DEVUAN_CODENAME\ *) : ;;
+         *\ $DEVUAN_CODENAME) : ;;
+         *) exit 1 ;;
+     esac
+ else                           # ascii doesn't set VERSION_CODENAME
+     case "$PRETTY_NAME" in
+         *\ $DEVUAN_CODENAME) : ;;
+         *) exit 1 ;;
+     esac
+ fi)
 
 # Install any missing requirements.  Anything that is installed here
 # will be removed again after the root filesystem has been created.
@@ -75,9 +82,14 @@ mkdir -p "$PWD/_caches/apt/archives"
 # container images in most use cases.  Explicitly exclude the few
 # that are known to get included otherwise.
 
+DEBOOTSTRAP_OPTS=
+if debootstrap --help | grep -q -- --cache-dir=; then
+    DEBOOTSTRAP_OPTS="--cache-dir=$PWD/_caches/apt/archives"
+fi
+
 debootstrap \
     --exclude=bootlogd,initscripts,sysv-rc,sysvinit-core \
-    --cache-dir="$PWD/_caches/apt/archives" \
+    $DEBOOTSTRAP_OPTS \
     --variant=minbase \
     --components=main \
     "$DEVUAN_CODENAME" "$TARGET" $DEVUAN_DEB_REPO
