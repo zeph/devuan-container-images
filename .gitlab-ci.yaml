@@ -15,7 +15,13 @@ build:
   before_script:
     - docker version
   script:
-    - docker run --rm
+    # The beowulf and later releases all warn about a failure to mount
+    # /proc in the root filesystem but ascii treats that as an error.
+    # Adding `--privileged` makes it pass.  More limited escalations
+    # of privileges such as `--security-opt seccomp=unconfined` and
+    # `--cap-all SYS_ADMIN` do not.
+    - test "$DEVUAN_CODENAME" = "ascii" && DOCKER_OPTS=--privileged
+    - docker run --rm ${DOCKER_OPTS:-}
              --volume $PWD:/mnt
              --workdir /mnt
              $MIGRATED_TAG ./bootstrap.sh $DEVUAN_CODENAME _targets
@@ -41,6 +47,7 @@ build:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
@@ -75,6 +82,7 @@ test:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTABLE_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
@@ -109,6 +117,8 @@ deploy:
         DEVUAN_SUITE: stable
       - DEVUAN_CODENAME: beowulf
         DEVUAN_SUITE: oldstable
+      - DEVUAN_CODENAME: ascii
+        DEVUAN_SUITE: oldoldstable
   variables:
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     TESTED_TAG: $CONTAINER_REGISTRY/devuan/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
@@ -142,6 +152,7 @@ check-upgradability:
           - daedalus
           - chimaera
           - beowulf
+          - ascii
   variables:
     CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan

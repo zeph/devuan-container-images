@@ -114,14 +114,22 @@ if test -n "$local_packages"; then
 fi
 
 # Confirm we are on the expected Devuan release now.
+
 (. /etc/os-release
  test "$ID" = devuan
- case "$VERSION_CODENAME" in
-     $DEVUAN_CODENAME)    : ;;
-     $DEVUAN_CODENAME\ *) : ;;
-     *\ $DEVUAN_CODENAME) : ;;
-     *) exit 1 ;;
- esac)
+ if test -n "${VERSION_CODENAME:-}"; then
+     case "$VERSION_CODENAME" in
+         $DEVUAN_CODENAME)    : ;;
+         $DEVUAN_CODENAME\ *) : ;;
+         *\ $DEVUAN_CODENAME) : ;;
+         *) exit 1 ;;
+     esac
+ else                           # ascii doesn't set VERSION_CODENAME
+     case "$PRETTY_NAME" in
+         *\ $DEVUAN_CODENAME) : ;;
+         *) exit 1 ;;
+     esac
+ fi)
 
 # Clean up
 
