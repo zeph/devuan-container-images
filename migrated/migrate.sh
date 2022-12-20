@@ -16,7 +16,7 @@ export DEBIAN_FRONTEND
 
 (. /etc/os-release
  test "$ID" = debian || exit 1
- test "$VERSION_CODENAME" = "$DEBIAN_CODENAME" || exit 0
+ test "$VERSION_CODENAME" = "$DEBIAN_CODENAME" && exit 0
  case "$PRETTY_NAME" in
      */$DEBIAN_CODENAME) : ;;
      *) exit 1 ;;
