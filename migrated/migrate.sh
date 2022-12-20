@@ -116,7 +116,7 @@ fi
 # Confirm we are on the expected Devuan release now.
 
 (. /etc/os-release
- test "$ID" = devuan
+ test "$ID" = devuan || exit 1
  if test -n "${VERSION_CODENAME:-}"; then
      case "$VERSION_CODENAME" in
          $DEVUAN_CODENAME)    : ;;

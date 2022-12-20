@@ -15,7 +15,7 @@ export DEBIAN_FRONTEND
 # in a subshell to prevent needless pollution of the environment.
 
 (. /etc/os-release
- test "$ID" = devuan
+ test "$ID" = devuan || exit 1
  if test -n "${VERSION_CODENAME:-}"; then
      case "$VERSION_CODENAME" in
          $DEVUAN_CODENAME)    : ;;
