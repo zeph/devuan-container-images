@@ -31,6 +31,9 @@ migrate:
       fi
   parallel:
     matrix:
+      - DEBIAN_CODENAME: sid
+        DEVUAN_CODENAME: ceres
+        DEVUAN_SUITE: unstable
       - DEBIAN_CODENAME: bookworm
         DEVUAN_CODENAME: daedalus
         DEVUAN_SUITE: testing
@@ -78,6 +81,7 @@ check-migrated-upgradability:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - ceres
           - daedalus
           - chimaera
           - beowulf
