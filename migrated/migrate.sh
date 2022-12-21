@@ -14,9 +14,14 @@ export DEBIAN_FRONTEND
 # Check we are dealing with the expected Debian environment.  Do this
 # in a subshell to prevent needless pollution of the environment.
 
-(. /etc/os-release \
-     && test "$ID" = debian \
-     && test "$VERSION_CODENAME" = "$DEBIAN_CODENAME")
+(. /etc/os-release
+ test "$ID" = debian || exit 1
+ test "$VERSION_CODENAME" = "$DEBIAN_CODENAME" && exit 0
+ case "$PRETTY_NAME" in
+     */$DEBIAN_CODENAME) : ;;
+     *) exit 1 ;;
+ esac)
+
 
 # If necessary, temporarily install requirements to securely obtain a
 # copy of the Devuan package signing key for use by APT.  Take utmost
@@ -116,7 +121,7 @@ fi
 # Confirm we are on the expected Devuan release now.
 
 (. /etc/os-release
- test "$ID" = devuan
+ test "$ID" = devuan || exit 1
  if test -n "${VERSION_CODENAME:-}"; then
      case "$VERSION_CODENAME" in
          $DEVUAN_CODENAME)    : ;;

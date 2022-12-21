@@ -44,6 +44,7 @@ build:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - ceres
           - daedalus
           - chimaera
           - beowulf
@@ -79,6 +80,7 @@ test:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - ceres
           - daedalus
           - chimaera
           - beowulf
@@ -111,6 +113,8 @@ deploy:
       fi
   parallel:
     matrix:
+      - DEVUAN_CODENAME: ceres
+        DEVUAN_SUITE: unstable
       - DEVUAN_CODENAME: daedalus
         DEVUAN_SUITE: testing
       - DEVUAN_CODENAME: chimaera
@@ -149,6 +153,7 @@ check-upgradability:
   parallel:
     matrix:
       - DEVUAN_CODENAME:
+          - ceres
           - daedalus
           - chimaera
           - beowulf
