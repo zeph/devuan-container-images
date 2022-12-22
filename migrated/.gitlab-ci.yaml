@@ -52,7 +52,7 @@ migrate:
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated
     MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "migrate"
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "migrate" && $CODENAME == $DEVUAN_CODENAME
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_PIPELINE_SOURCE != "trigger"
@@ -76,6 +76,7 @@ check-migrated-upgradability:
                --form token="$TRIGGER_TOKEN" \
                --form ref="$CI_DEFAULT_BRANCH" \
                --form "variables[ACTION]=migrate" \
+               --form "variables[CODENAME]=$DEVUAN_CODENAME" \
                "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
       fi
   parallel:

@@ -59,7 +59,7 @@ build:
 
 .build-rules:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "build"
+    - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "build" && $CODENAME == $DEVUAN_CODENAME
     - if: $CI_PIPELINE_SOURCE == "schedule"
       when: never
     - if: $CI_PIPELINE_SOURCE != "trigger"
@@ -148,6 +148,7 @@ check-upgradability:
                --form token="$TRIGGER_TOKEN" \
                --form ref="$CI_DEFAULT_BRANCH" \
                --form "variables[ACTION]=build" \
+               --form "variables[CODENAME]=$DEVUAN_CODENAME" \
                "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
       fi
   parallel:
