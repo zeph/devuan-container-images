@@ -74,7 +74,7 @@ check-migrated-upgradability:
                   --assume-yes --no-install-recommends
           curl --request POST \
                --form token="$TRIGGER_TOKEN" \
-               --form ref="$CI_DEFAULT_BRANCH" \
+               --form ref="$CI_COMMIT_BRANCH" \
                --form "variables[ACTION]=migrate" \
                --form "variables[CODENAME]=$DEVUAN_CODENAME" \
                "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
