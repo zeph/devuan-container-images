@@ -159,7 +159,7 @@ check-upgradability:
           - beowulf
           - ascii
   variables:
-    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+    CONTAINER_REGISTRY: docker.io/devuan
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan
     DEPLOYED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME
   rules:
