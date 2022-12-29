@@ -11,13 +11,13 @@ entanglements and ensuring [Init Freedom][IF].
 
 Tags for all maintained [Devuan releases][DR] are available.  These
 `<release>` tags point to the most recently published image for a
-release.  The corresponing suite names can be used as tags as well,
+release.  Corresponding suite names can be used as tags as well,
 e.g. `testing`.
 
 Release and suite name tags move to a *different* image every time
 updated images are made available.  To help you stay on a specific
 version of an image, timestamped tags for each release are provided
-(in `<release>-YYYY-MM-DD` format) as well.
+in `<release>-YYYY-MM-DD` format.
 
 Finally, the `latest` tag is an alias for `stable`.
 
@@ -26,9 +26,9 @@ tags are available:
 
 - `ceres-YYYY-MM-DD` formatted tags for all published images built
   for the `ceres` release
-- a `ceres` tag that points to the most recent `ceres-YYYY-MM-DD`
-  image
-- an `unstable` tag that aliases `ceres`
+- a `ceres` release tag that points to the `ceres-YYYY-MM-DD` image
+  that was published most recently
+- an `unstable` suite tag that aliases the `ceres` release tag
 
 # Getting Help
 

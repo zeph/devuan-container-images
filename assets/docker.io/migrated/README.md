@@ -25,7 +25,7 @@ e.g. `testing-slim`.
 Release and suite name tags move to a *different* image every time
 updated images are made available.  To help you stay on a specific
 version of an image, timestamped tags for each release are provided
-(in `<release>-slim-YYYY-MM-DD` format) as well.
+in `<release>-slim-YYYY-MM-DD` format.
 
 Finally, the `slim` tag is an alias for `stable-slim`.
 
@@ -34,9 +34,9 @@ tags are available:
 
 - `ceres-slim-YYYY-MM-DD` formatted tags for all published images
   built for the `ceres` release
-- a `ceres-slim` tag that points to the `ceres-slim-YYYY-MM-DD` image
-  that was most recently published
-- an `unstable-slim` tag that aliases `ceres-slim`
+- a `ceres-slim` release tag pointing to the `ceres-slim-YYYY-MM-DD`
+  image that was published most recently
+- an `unstable-slim` suite tag that aliases `ceres-slim`
 
 # Getting Help
 
