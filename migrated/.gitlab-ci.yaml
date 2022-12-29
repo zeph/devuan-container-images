@@ -89,7 +89,7 @@ check-migrated-upgradability:
           - ascii
   variables:
     IMAGE_VARIANT: -slim
-    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
+    CONTAINER_REGISTRY: docker.io
     IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated
     MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
