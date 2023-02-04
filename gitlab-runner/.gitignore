@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 
 /.env
+/config/.runner_system_id
 /config/config.toml
 /config/docker.json
