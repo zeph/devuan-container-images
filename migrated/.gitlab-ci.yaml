@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 
 # Note: Path names are relative to the project's top-level directory.
 
 migrate:
   stage: build
-  image: docker:cli
+  image: docker:20-cli
   services:
-    - docker:dind
+    - docker:20-dind
   before_script:
     - docker version
   script:
