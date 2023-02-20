@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 
 ARG DEBIAN_CODENAME=bullseye
 ARG IMAGE_VARIANT=-slim
@@ -17,4 +17,4 @@ ARG DEBIAN_CODENAME=bullseye
 ARG DEVUAN_CODENAME=chimaera
 
 COPY migrate.sh /tmp
-RUN  /tmp/migrate.sh $DEBIAN_CODENAME $DEVUAN_CODENAME
+RUN  dockerenv=true /tmp/migrate.sh $DEBIAN_CODENAME $DEVUAN_CODENAME
