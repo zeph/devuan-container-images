@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 
 test -n "${DEBUG+true}" && set -x
 
@@ -138,7 +138,7 @@ fi
 
 # Clean up
 
-if test -f /.dockerenv; then
+if test -f /.dockerenv || test "$dockerenv" = "true"; then
     # Clean up more thoroughly to reduce container image size.
 
     apt-get --quiet clean
