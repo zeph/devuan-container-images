@@ -66,10 +66,8 @@ check-migrated-upgradability:
   stage: test
   image: $MIGRATED_TAG
   script:
-    - apt-get --quiet update
     - |
-      if test 0 -lt "$(apt list --upgradable 2>/dev/null \
-                           | grep upgradable | wc -l)"; then
+      if ./upgradable.sh; then
           apt-get --quiet install curl ca-certificates \
                   --assume-yes --no-install-recommends
           curl --request POST \
