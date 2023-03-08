@@ -5,9 +5,9 @@
 
 migrate:
   stage: build
-  image: docker:20-cli
+  image: docker:cli
   services:
-    - docker:20-dind
+    - docker:dind
   before_script:
     - docker version
   script:
