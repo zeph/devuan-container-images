@@ -48,8 +48,8 @@ migrate:
         DEVUAN_SUITE: oldoldstable
   variables:
     IMAGE_VARIANT: -slim
-    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE
-    IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated
+    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE/devuan
+    IMAGE_BASE: $CONTAINER_REGISTRY/migrated
     MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "migrate" && $CODENAME == $DEVUAN_CODENAME
@@ -87,8 +87,8 @@ check-migrated-upgradability:
           - ascii
   variables:
     IMAGE_VARIANT: -slim
-    CONTAINER_REGISTRY: docker.io
-    IMAGE_BASE: $CONTAINER_REGISTRY/devuan/migrated
+    CONTAINER_REGISTRY: docker.io/devuan
+    IMAGE_BASE: $CONTAINER_REGISTRY/migrated
     MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
