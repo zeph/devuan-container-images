@@ -14,21 +14,10 @@ migrate:
     - docker build
           --build-arg DEBIAN_CODENAME
           --build-arg DEVUAN_CODENAME
-          --build-arg IMAGE_VARIANT
           --tag $MIGRATED_TAG
           migrated
-    - TIMESTAMP=$(date -u +%F)
-    - docker tag $MIGRATED_TAG $MIGRATED_TAG-$TIMESTAMP
-    - docker push --quiet      $MIGRATED_TAG-$TIMESTAMP
-    - docker push --quiet      $MIGRATED_TAG
-    - docker tag $MIGRATED_TAG $IMAGE_BASE:$DEVUAN_SUITE$IMAGE_VARIANT
-    - docker push --quiet      $IMAGE_BASE:$DEVUAN_SUITE$IMAGE_VARIANT
-    - |
-      : ${IMAGE_VARIANT:=latest}
-      if test "$DEVUAN_SUITE" = "stable"; then
-          docker tag $MIGRATED_TAG $IMAGE_BASE:${IMAGE_VARIANT#-}
-          docker push --quiet      $IMAGE_BASE:${IMAGE_VARIANT#-}
-      fi
+    - docker push --quiet $MIGRATED_TAG
+    - ./publish.sh migrated
   parallel:
     matrix:
       - DEBIAN_CODENAME: sid
@@ -47,10 +36,12 @@ migrate:
         DEVUAN_CODENAME: ascii
         DEVUAN_SUITE: oldoldstable
   variables:
-    IMAGE_VARIANT: -slim
-    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    IMAGE_BASE: $CONTAINER_REGISTRY/migrated
-    MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
+    IMAGE_BASE: $SOURCE_REGISTRY/migrated
+    MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$BUILD_VARIANT-$CI_PIPELINE_ID
+    BUILD_ID: $CI_PIPELINE_ID
+    BUILD_VARIANT: -slim
+    SOURCE_REGISTRY: $CI_REGISTRY_IMAGE/devuan
+    TARGET_REGISTRY: $CI_REGISTRY_IMAGE/devuan
   rules:
     - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "migrate" && $CODENAME == $DEVUAN_CODENAME
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -86,9 +77,9 @@ check-migrated-upgradability:
           - beowulf
           - ascii
   variables:
-    IMAGE_VARIANT: -slim
+    BUILD_VARIANT: -slim
     CONTAINER_REGISTRY: docker.io/devuan
     IMAGE_BASE: $CONTAINER_REGISTRY/migrated
-    MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$IMAGE_VARIANT
+    MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$BUILD_VARIANT
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
