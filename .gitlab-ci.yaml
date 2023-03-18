@@ -40,7 +40,7 @@ build:
       ADD _targets/$DEVUAN_CODENAME.tar /
       CMD ["bash"]
       EOF
-    - docker push $TESTABLE_TAG
+    - docker push --quiet $TESTABLE_TAG
   parallel:
     matrix:
       - DEVUAN_CODENAME:
@@ -53,7 +53,7 @@ build:
     IMAGE_VARIANT: -slim
     CONTAINER_REGISTRY: docker.io/devuan
     TEMPORARY_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TESTABLE_TAG: $TEMPORARY_REGISTRY/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
+    TESTABLE_TAG: $TEMPORARY_REGISTRY/devuan:$DEVUAN_CODENAME-$CI_PIPELINE_ID
     MIGRATED_TAG: $CONTAINER_REGISTRY/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
   rules:
     - !reference [.build-rules, rules]
@@ -88,7 +88,7 @@ test:
           - ascii
   variables:
     TEMPORARY_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TESTABLE_TAG: $TEMPORARY_REGISTRY/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
+    TESTABLE_TAG: $TEMPORARY_REGISTRY/devuan:$DEVUAN_CODENAME-$CI_PIPELINE_ID
   rules:
     - !reference [.build-rules, rules]
 
@@ -97,21 +97,8 @@ deploy:
   image: docker:cli
   services:
     - docker:dind
-  before_script:
-    - docker pull $TESTED_TAG
-    - TIMESTAMP=$(date -u +%F)
   script:
-    - docker tag  $TESTED_TAG $IMAGE_BASE:$DEVUAN_CODENAME-$TIMESTAMP
-    - docker push --quiet     $IMAGE_BASE:$DEVUAN_CODENAME-$TIMESTAMP
-    - docker tag  $TESTED_TAG $IMAGE_BASE:$DEVUAN_CODENAME
-    - docker push --quiet     $IMAGE_BASE:$DEVUAN_CODENAME
-    - docker tag  $TESTED_TAG $IMAGE_BASE:$DEVUAN_SUITE
-    - docker push --quiet     $IMAGE_BASE:$DEVUAN_SUITE
-    - |
-      if test "$DEVUAN_SUITE" = "stable"; then
-          docker tag  $TESTED_TAG $IMAGE_BASE:latest
-          docker push --quiet     $IMAGE_BASE:latest
-      fi
+    - ./publish.sh devuan
   parallel:
     matrix:
       - DEVUAN_CODENAME: ceres
@@ -125,10 +112,9 @@ deploy:
       - DEVUAN_CODENAME: ascii
         DEVUAN_SUITE: oldoldstable
   variables:
-    CONTAINER_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TEMPORARY_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TESTED_TAG: $TEMPORARY_REGISTRY/testable:$DEVUAN_CODENAME-$CI_PIPELINE_ID
-    IMAGE_BASE: $CONTAINER_REGISTRY/devuan
+    BUILD_ID: $CI_PIPELINE_ID
+    SOURCE_REGISTRY: $CI_REGISTRY_IMAGE/devuan
+    TARGET_REGISTRY: $CI_REGISTRY_IMAGE/devuan
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       when: never
