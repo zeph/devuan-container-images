@@ -19,7 +19,9 @@ export DEBIAN_FRONTEND
  test "$VERSION_CODENAME" = "$DEBIAN_CODENAME" && exit 0
  case "$PRETTY_NAME" in
      */$DEBIAN_CODENAME) : ;;
-     *) exit 1 ;;
+     *) test "$DEBIAN_CODENAME" = sid || exit 1
+        grep "^Suites: $DEBIAN_CODENAME$" \
+             /etc/apt/sources.list.d/debian.sources >/dev/null
  esac)
 
 
