@@ -32,9 +32,6 @@ migrate:
       - DEBIAN_CODENAME: buster
         DEVUAN_CODENAME: beowulf
         DEVUAN_SUITE: oldstable
-      - DEBIAN_CODENAME: stretch
-        DEVUAN_CODENAME: ascii
-        DEVUAN_SUITE: oldoldstable
   variables:
     IMAGE_BASE: $SOURCE_REGISTRY/migrated
     MIGRATED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME$BUILD_VARIANT-$CI_PIPELINE_ID
@@ -75,7 +72,6 @@ check-migrated-upgradability:
           - daedalus
           - chimaera
           - beowulf
-          - ascii
   variables:
     BUILD_VARIANT: -slim
     CONTAINER_REGISTRY: docker.io/devuan
