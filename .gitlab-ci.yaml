@@ -1,148 +1,18 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2023 Olaf Meeuwissen
+
+deprecation-warning:
+  image: busybox
+  stage: .pre
+  script:
+    - |
+      cat <<EOF
+      CI/CD support has moved to .gitlab/ci.yaml.  Please adjust the
+      CI/CD configuration file setting in Settings » CI/CD » General
+      pipelines to get rid of this job's warning.
+      EOF
+    - exit 1
+  allow_failure: true
 
 include:
-  - local: migrated/.gitlab-ci.yaml
-
-build:
-  stage: build
-  needs:
-    - job: migrate
-      optional: true
-  image: docker:cli
-  services:
-    - docker:dind
-  before_script:
-    - docker version
-  script:
-    # The beowulf and later releases all warn about a failure to mount
-    # /proc in the root filesystem but ascii treats that as an error.
-    # Adding `--privileged` makes it pass.  More limited escalations
-    # of privileges such as `--security-opt seccomp=unconfined` and
-    # `--cap-all SYS_ADMIN` do not.
-    - test "$DEVUAN_CODENAME" = "ascii" && DOCKER_OPTS=--privileged
-    - docker run --rm ${DOCKER_OPTS:-}
-             --volume $PWD:/mnt
-             --workdir /mnt
-             $MIGRATED_TAG ./bootstrap.sh $DEVUAN_CODENAME _targets
-    - cp -a overlays/base/* _targets/$DEVUAN_CODENAME
-    - cp -a overlays/$DEVUAN_CODENAME/* _targets/$DEVUAN_CODENAME
-    - tar -caf _targets/$DEVUAN_CODENAME.tar --directory _targets/$DEVUAN_CODENAME
-          --exclude-from excludes/base --exclude-from excludes/$DEVUAN_CODENAME .
-    - |
-      cat <<EOF > .dockerignore
-      *
-      !_targets/$DEVUAN_CODENAME.tar
-      EOF
-    - |
-      cat <<EOF | docker build -t $TESTABLE_TAG -f - .
-      FROM scratch
-      ADD _targets/$DEVUAN_CODENAME.tar /
-      CMD ["bash"]
-      EOF
-    - docker push --quiet $TESTABLE_TAG
-  parallel:
-    matrix:
-      - DEVUAN_CODENAME:
-          - ceres
-          - daedalus
-          - chimaera
-          - beowulf
-  variables:
-    IMAGE_VARIANT: -slim
-    CONTAINER_REGISTRY: docker.io/devuan
-    TEMPORARY_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TESTABLE_TAG: $TEMPORARY_REGISTRY/devuan:$DEVUAN_CODENAME-$CI_PIPELINE_ID
-    MIGRATED_TAG: $CONTAINER_REGISTRY/migrated:$DEVUAN_CODENAME$IMAGE_VARIANT
-  rules:
-    - !reference [.build-rules, rules]
-
-.build-rules:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "trigger" && $ACTION == "build" && $CODENAME == $DEVUAN_CODENAME
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: never
-    - if: $CI_PIPELINE_SOURCE != "trigger"
-      changes:
-        - .gitlab-ci.yaml
-        - bootstrap.sh
-        - excludes/base
-        - excludes/$DEVUAN_CODENAME
-        - overlays/base/**/*
-        - overlays/$DEVUAN_CODENAME/**/*
-
-test:
-  stage: test
-  image: $TESTABLE_TAG
-  script:
-    - apt-get update
-    - apt-get install hello
-  parallel:
-    matrix:
-      - DEVUAN_CODENAME:
-          - ceres
-          - daedalus
-          - chimaera
-          - beowulf
-  variables:
-    TEMPORARY_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TESTABLE_TAG: $TEMPORARY_REGISTRY/devuan:$DEVUAN_CODENAME-$CI_PIPELINE_ID
-  rules:
-    - !reference [.build-rules, rules]
-
-deploy:
-  stage: deploy
-  image: docker:cli
-  services:
-    - docker:dind
-  script:
-    - ./publish.sh devuan
-  parallel:
-    matrix:
-      - DEVUAN_CODENAME: ceres
-        DEVUAN_SUITE: unstable
-      - DEVUAN_CODENAME: daedalus
-        DEVUAN_SUITE: testing
-      - DEVUAN_CODENAME: chimaera
-        DEVUAN_SUITE: stable
-      - DEVUAN_CODENAME: beowulf
-        DEVUAN_SUITE: oldstable
-  variables:
-    BUILD_ID: $CI_PIPELINE_ID
-    SOURCE_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-    TARGET_REGISTRY: $CI_REGISTRY_IMAGE/devuan
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      when: never
-    - !reference [.build-rules, rules]
-
-# Note: The TRIGGER_TOKEN is set via CI/CD Variables.  It should only
-# be set on protected branches and masked to keep it out of job logs.
-check-upgradability:
-  stage: test
-  image: $DEPLOYED_TAG
-  script:
-    - |
-      if ./upgradable.sh; then
-          apt-get --quiet install curl ca-certificates \
-                  --assume-yes --no-install-recommends
-          curl --request POST \
-               --form token="$TRIGGER_TOKEN" \
-               --form ref="$CI_COMMIT_BRANCH" \
-               --form "variables[ACTION]=build" \
-               --form "variables[CODENAME]=$DEVUAN_CODENAME" \
-               "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
-      fi
-  parallel:
-    matrix:
-      - DEVUAN_CODENAME:
-          - ceres
-          - daedalus
-          - chimaera
-          - beowulf
-  variables:
-    CONTAINER_REGISTRY: docker.io/devuan
-    IMAGE_BASE: $CONTAINER_REGISTRY/devuan
-    DEPLOYED_TAG: $IMAGE_BASE:$DEVUAN_CODENAME
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
+  - local: .gitlab/ci.yaml

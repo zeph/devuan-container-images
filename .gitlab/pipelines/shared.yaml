@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# SPDX-FileCopyrightText: © 2023 Olaf Meeuwissen
+
+.registry-rules:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      variables:
+        TESTED_REGISTRY: $PUBLIC_REGISTRY
+        STAGED_REGISTRY: $CI_REGISTRY_IMAGE/staged
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      variables:
+        TESTED_REGISTRY: $CI_REGISTRY_IMAGE/branch
+        STAGED_REGISTRY: $CI_REGISTRY_IMAGE/hidden
+
+variables:
+  PUBLIC_REGISTRY: docker.io/devuan
