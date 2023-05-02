@@ -24,7 +24,7 @@ fi
 # `--cap-all SYS_ADMIN` do not.
 test "$DEVUAN_CODENAME" = "ascii" && DOCKER_OPTS=--privileged
 
-docker run --rm "${DOCKER_OPTS:-}" \
+docker run --rm ${DOCKER_OPTS:-} \
        --volume "$PWD":/mnt \
        --workdir /mnt \
        "$SOURCE_IMAGE" ./bootstrap.sh "$DEVUAN_CODENAME" _targets
