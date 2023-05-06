@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # SPDX-FileCopyrightText: © 2023 Olaf Meeuwissen
 
-SOURCE_IMAGE=$SOURCE_REGISTRY/migrated:$DEVUAN_CODENAME
+SOURCE_IMAGE=$SOURCE_REGISTRY/migrated:$DEVUAN_CODENAME-slim
 docker pull --quiet "$SOURCE_IMAGE" >&2
 if docker run -v "$PWD":/mnt:ro "$SOURCE_IMAGE" /mnt/upgradable.sh >&2; then
     echo migration

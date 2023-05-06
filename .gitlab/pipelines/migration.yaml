@@ -33,6 +33,7 @@ publish:
   variables:
     SOURCE_REGISTRY: $STAGED_REGISTRY
     TARGET_REGISTRY: $TESTED_REGISTRY
+    BUILD_VARIANT: -slim
 
 # After publishing a new migrated image, trigger a rebuild of the
 # bootstrapped image(s).
