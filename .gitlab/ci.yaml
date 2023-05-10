@@ -1,0 +1,95 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# SPDX-FileCopyrightText: © 2023 Olaf Meeuwissen
+
+.releases:
+  parallel:
+    matrix:
+      - DEVUAN_CODENAME: ceres
+        DEVUAN_SUITE: unstable
+        DEBIAN_CODENAME: sid
+      - DEVUAN_CODENAME: daedalus
+        DEVUAN_SUITE: testing
+        DEBIAN_CODENAME: bookworm
+      - DEVUAN_CODENAME: chimaera
+        DEVUAN_SUITE: stable
+        DEBIAN_CODENAME: bullseye
+      - DEVUAN_CODENAME: beowulf
+        DEVUAN_SUITE: oldstable
+        DEBIAN_CODENAME: buster
+
+include:
+  - local: /.gitlab/pipelines/shared.yaml
+
+# Upgradability checks need to run in docker:cli because we need to
+# test both devuan/migrated and devuan/devuan.  In addition, we may
+# want to send a trigger if the base image of the first has changed
+# but all of that is the responsibility of `./check.sh`.
+
+.check:
+  image: docker:cli
+  services:
+    - docker:dind
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      variables:
+        SOURCE_REGISTRY: $PUBLIC_REGISTRY
+  script:
+    - ACTION=$(./check.sh)
+    - test -n "$ACTION" || exit 0
+    - apk add curl
+    - echo "Triggering $ACTION pipeline for $DEVUAN_CODENAME"
+    - curl --request POST --fail --silent --show-error
+           --form "token=$UPGRADE_TRIGGER_TOKEN"
+           --form "ref=$CI_COMMIT_BRANCH"
+           --form "variables[CODENAME]=$DEVUAN_CODENAME"
+           --form "variables[ACTION]=$ACTION"
+           "$CI_API_V4_URL/projects/$CI_PROJECT_ID/trigger/pipeline"
+
+check:
+  extends: [ .check, .releases ]
+
+.migrate:
+  trigger:
+    include:
+      - local: /.gitlab/pipelines/migration.yaml
+    strategy: depend
+  rules:
+    - if: $CI_PIPELINE_TRIGGERED && $CODENAME == $DEVUAN_CODENAME && $ACTION == "migration"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "trigger"
+      changes:
+        - migrate.sh
+        - migrated/migrate.sh
+  variables:
+    BUILD_ID: $CI_PIPELINE_ID
+
+migrate:
+  extends: [ .migrate, .releases ]
+
+.bootstrap:
+  trigger:
+    include:
+      - local: /.gitlab/pipelines/bootstrap.yaml
+    strategy: depend
+  rules:
+    - if: $CI_PIPELINE_TRIGGERED && $CODENAME == $DEVUAN_CODENAME && $ACTION == "bootstrap"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "trigger"
+      changes:
+        - migrate.sh            # migration pipeline runs and will trigger us
+      when: never
+    - if: $CI_PIPELINE_SOURCE != "trigger"
+      changes:
+        - bootstrap.sh
+        - build.sh
+        - excludes/base
+        - excludes/$DEVUAN_CODENAME
+        - overlays/base/**/*
+        - overlays/$DEVUAN_CODENAME/**/*
+  variables:
+    BUILD_ID: $CI_PIPELINE_ID
+
+bootstrap:
+  extends: [ .bootstrap, .releases ]

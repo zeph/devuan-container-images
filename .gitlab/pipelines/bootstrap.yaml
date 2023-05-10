@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0
+# SPDX-FileCopyrightText: © 2023 Olaf Meeuwissen
+
+stages:
+  - build
+  - test
+  - publish
+
+include:
+  - local: /.gitlab/pipelines/shared.yaml
+
+bootstrap:
+  stage: build
+  image: docker:cli
+  services:
+    - docker:dind
+  script:
+    - ./build.sh
+  extends: .registry-rules
+  variables:
+    SOURCE_REGISTRY: $TESTED_REGISTRY
+    TARGET_REGISTRY: $STAGED_REGISTRY
+
+image-run-time:
+  stage: test
+  image: $STAGED_REGISTRY/devuan:$DEVUAN_CODENAME-$BUILD_ID
+  script:
+    - apt-get update
+    - apt-get install hello
+  extends: .registry-rules
+
+# Now that the image has passed all its tests, make it available for
+# general use.
+
+publish:
+  stage: publish
+  image: docker:cli
+  services:
+    - docker:dind
+  script:
+    - ./publish.sh devuan
+  extends: .registry-rules
+  variables:
+    SOURCE_REGISTRY: $STAGED_REGISTRY
+    TARGET_REGISTRY: $TESTED_REGISTRY
