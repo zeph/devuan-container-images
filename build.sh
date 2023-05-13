@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # SPDX-FileCopyrightText: © 2023 Olaf Meeuwissen
 
-SOURCE_IMAGE=$SOURCE_REGISTRY/migrated:$DEVUAN_CODENAME
+SOURCE_IMAGE=$SOURCE_REGISTRY/migrated:$DEVUAN_CODENAME-slim
 TARGET_IMAGE=$TARGET_REGISTRY/devuan:$DEVUAN_CODENAME-$BUILD_ID
 
 if test "$SOURCE_REGISTRY" = "$PUBLIC_REGISTRY"; then
@@ -12,7 +12,7 @@ else
     # the branch may or may not exist.  Try pulling it and fall back
     # to the public registry if that fails.
     if ! docker pull --quiet "$SOURCE_IMAGE"; then
-        SOURCE_IMAGE=$PUBLIC_REGISTRY/migrated:$DEVUAN_CODENAME
+        SOURCE_IMAGE=$PUBLIC_REGISTRY/migrated:$DEVUAN_CODENAME-slim
         docker pull --quiet "$SOURCE_IMAGE"
     fi
 fi
