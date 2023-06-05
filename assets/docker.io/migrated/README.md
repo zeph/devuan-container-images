@@ -1,6 +1,6 @@
 ---
 SPDX-License-Identifier: CC-BY-SA-4.0
-SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 ---
 
 Devuan GNU+Linux is a fork of Debian without `systemd` that allows
@@ -17,10 +17,10 @@ These images are used to build the [`devuan/devuan`][DD] images.
 
 # Available Tags
 
-Tags for all maintained [Devuan releases][DR] are available.  These
-`<release>-slim` tags point to the most recently published image for a
-release.  The corresponing suite names can be used as tags as well,
-e.g. `testing-slim`.
+Tags for all [Devuan releases][DR] since `ascii` are available.  The
+`<release>-slim` tags point to the most recently published image for
+a release.  Corresponding suite names can be used as tags instead of
+release names as well, e.g. `testing-slim`.
 
 Release and suite name tags move to a *different* image every time
 updated images are made available.  To help you stay on a specific
@@ -38,10 +38,25 @@ tags are available:
   image that was published most recently
 - an `unstable-slim` suite tag that aliases `ceres-slim`
 
+## Archived Releases
+
+Images for maintained releases are updated on a needs basis.  Once a
+release is archived, the image is no longer updated.  As a result,
+images for an archived release will point to an APT source that no
+longer exists.
+
+While you should upgrade to a maintained release as soon as possible,
+if you absolutely *must* continue using an archived release, you can
+"fix" the image's APT sources by running
+
+``` sh
+sed -i 's,//deb,//archive,; /-updates/d' /etc/apt/sources.list
+```
+
 # Getting Help
 
-For questions specific to these images, please ask around on the
-[DNG mailing list][ML].
+For questions specific to these images, please ask around on the [DNG
+mailing list][ML].
 
 # Development
 
