@@ -60,7 +60,7 @@ All code to build images and any issues pertaining to them can be
 found there.  New issues can be submitted there as well.
 
  [CI]: https://git.devuan.org/paddy-hack/container-images
- [DM]: htttps://hub.docker.com/r/devuan/migrated
+ [DM]: https://hub.docker.com/r/devuan/migrated
  [DR]: https://www.devuan.org/os/releases
  [IF]: https://www.devuan.org/os/init-freedom
  [ML]: https://mailinglists.dyne.org/cgi-bin/mailman/listinfo/dng
