@@ -7,14 +7,17 @@
       - DEVUAN_CODENAME: ceres
         DEVUAN_SUITE: unstable
         DEBIAN_CODENAME: sid
-      - DEVUAN_CODENAME: daedalus
+      - DEVUAN_CODENAME: excalibur
         DEVUAN_SUITE: testing
+        DEBIAN_CODENAME: trixie
+      - DEVUAN_CODENAME: daedalus
+        DEVUAN_SUITE: stable
         DEBIAN_CODENAME: bookworm
       - DEVUAN_CODENAME: chimaera
-        DEVUAN_SUITE: stable
+        DEVUAN_SUITE: oldstable
         DEBIAN_CODENAME: bullseye
       - DEVUAN_CODENAME: beowulf
-        DEVUAN_SUITE: oldstable
+        DEVUAN_SUITE: oldoldstable
         DEBIAN_CODENAME: buster
 
 include:
