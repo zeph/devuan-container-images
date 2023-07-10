@@ -17,13 +17,10 @@ export DEBIAN_FRONTEND
 (. /etc/os-release
  test "$ID" = debian || exit 1
  test "$VERSION_CODENAME" = "$DEBIAN_CODENAME" && exit 0
- case "$PRETTY_NAME" in
-     */$DEBIAN_CODENAME) : ;;
-     *) test "$DEBIAN_CODENAME" = sid || exit 1
-        grep "^Suites: $DEBIAN_CODENAME$" \
-             /etc/apt/sources.list.d/debian.sources >/dev/null
- esac)
-
+ # If still here, we're dealing with testing/unstable codenames which
+ # may or may not have -security and/or -updates suites.
+ grep -E "^Suites: $DEBIAN_CODENAME( $DEBIAN_CODENAME-.*)*$" \
+      /etc/apt/sources.list.d/debian.sources >/dev/null)
 
 # If necessary, temporarily install requirements to securely obtain a
 # copy of the Devuan package signing key for use by APT.  Take utmost
