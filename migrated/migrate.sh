@@ -42,9 +42,6 @@ if test -n "$REQUIREMENTS"; then
             --assume-yes --no-install-recommends
 fi
 
-curl --silent --location --show-error \
-     --output /etc/apt/trusted.gpg.d/devuan-archive-keyring.gpg \
-     https://files.devuan.org/devuan-archive-keyring.gpg
 
 # Replace the Debian APT sources with those for Devuan.
 # Non-released "releases" may be missing *-security and/or *-updates.
@@ -87,6 +84,19 @@ if test -n "$REQUIREMENTS"; then
          && apt-mark auto $(cat /tmp/apt-mark.auto) > /dev/null
     rm -f /tmp/apt-mark.auto
 fi
+
+# Put required archive keys into place.
+
+case "$DEVUAN_CODENAME" in
+    excalibur)
+        cp /tmp/trusted.gpg.d/devuan-keyring-$DEVUAN_CODENAME-archive.gpg \
+           /etc/apt/trusted.gpg.d/
+        ;;
+    *)
+        cp /tmp/trusted.gpg.d/devuan-keyring-2016-archive.gpg \
+           /etc/apt/trusted.gpg.d/
+        ;;
+esac
 
 # Migrate from Debian to Devuan.
 

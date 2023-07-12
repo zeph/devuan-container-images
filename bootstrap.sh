@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 
 test -n "${DEBUG+true}" && set -x
 
@@ -68,10 +68,19 @@ if test -n "$REQUIREMENTS"; then
             --assume-yes --no-install-recommends
 fi
 
+# Put required archive keys into place.
+
 test -f "$KEYRING_FILE" && mv "$KEYRING_FILE" "$KEYRING_FILE.bak"
-curl --silent --location --show-error \
-     https://files.devuan.org/devuan-archive-keyring.gpg \
-     > "$KEYRING_FILE"
+case "$DEVUAN_CODENAME" in
+    excalibur)
+        cp "/etc/apt/trusted.gpg.d/devuan-keyring-$DEVUAN_CODENAME-archive.gpg" \
+           "$KEYRING_FILE"
+        ;;
+    *)
+        cp /etc/apt/trusted.gpg.d/devuan-keyring-2016-archive.gpg \
+           "$KEYRING_FILE"
+        ;;
+esac
 
 # Create a Devuan root filesystem
 

@@ -11,12 +11,15 @@ trap "rm -f .dockerignore" EXIT HUP INT TERM
 cat <<EOF > .dockerignore
 *
 !migrated/migrate.sh
+!keyrings/
 EOF
 
 cat <<EOF | docker build --tag "$TARGET_IMAGE" --file - .
 FROM $SOURCE_IMAGE
 
 COPY migrated/migrate.sh /tmp
+COPY keyrings/ /tmp/trusted.gpg.d/
+
 RUN  dockerenv=true /tmp/migrate.sh $DEBIAN_CODENAME $DEVUAN_CODENAME
 EOF
 
