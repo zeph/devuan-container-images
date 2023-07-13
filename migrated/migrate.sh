@@ -22,14 +22,16 @@ export DEBIAN_FRONTEND
  grep -E "^Suites: $DEBIAN_CODENAME( $DEBIAN_CODENAME-.*)*$" \
       /etc/apt/sources.list.d/debian.sources >/dev/null)
 
-# If necessary, temporarily install requirements to securely obtain a
-# copy of the Devuan package signing key for use by APT.  Take utmost
-# care not to remove already automatically installed packages in this
-# step.
+# Replace the Debian APT sources with those for Devuan.
+# Non-released "releases" may be missing *-security and/or *-updates.
+# Only add those suites that are available in the package repository.
+#
+# This relies on curl to relay the HTTP status code of the responses
+# we get to determine presence of suites.  If not available, curl is
+# installed temporarily, in such a way that it (and any dependencies
+# it pulls in) can be uninstalled again when its job is done.
 
 REQUIREMENTS=""
-command -v update-ca-certificates > /dev/null \
-    || REQUIREMENTS="$REQUIREMENTS ca-certificates"
 command -v curl > /dev/null \
     || REQUIREMENTS="$REQUIREMENTS curl"
 
@@ -41,11 +43,6 @@ if test -n "$REQUIREMENTS"; then
     apt-get --quiet install $REQUIREMENTS \
             --assume-yes --no-install-recommends
 fi
-
-
-# Replace the Debian APT sources with those for Devuan.
-# Non-released "releases" may be missing *-security and/or *-updates.
-# Only add those suites that are available in the package repository.
 
 > /etc/apt/sources.list
 rm -f /etc/apt/sources.list.d/*
