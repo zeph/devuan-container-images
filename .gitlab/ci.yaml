@@ -52,7 +52,6 @@ check:
   trigger:
     include:
       - local: /.gitlab/pipelines/migration.yaml
-    strategy: depend
   rules:
     - if: $CI_PIPELINE_TRIGGERED && $CODENAME == $DEVUAN_CODENAME && $ACTION == "migration"
     - if: $CI_PIPELINE_SOURCE == "schedule"
@@ -71,7 +70,6 @@ migrate:
   trigger:
     include:
       - local: /.gitlab/pipelines/bootstrap.yaml
-    strategy: depend
   rules:
     - if: $CI_PIPELINE_TRIGGERED && $CODENAME == $DEVUAN_CODENAME && $ACTION == "bootstrap"
     - if: $CI_PIPELINE_SOURCE == "schedule"

@@ -43,7 +43,6 @@ trigger:
   trigger:
     include:
       - local: /.gitlab/pipelines/bootstrap.yaml
-    strategy: depend
   variables:
     # Forward variable values to the triggered pipeline
     DEVUAN_CODENAME: $DEVUAN_CODENAME
