@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 # SPDX-License-Identifier: CC-BY-SA-4.0
-# SPDX-FileCopyrightText: © 2022 Olaf Meeuwissen
+# SPDX-FileCopyrightText: © 2022, 2023 Olaf Meeuwissen
 
 test -n "${DEBUG+true}" && set -x
 
@@ -53,25 +53,17 @@ fi
 KEYRING_FILE=$(sed -n 's/^keyring[ \t]*//p' \
                    "/usr/share/debootstrap/scripts/$DEVUAN_CODENAME")
 
-command -v update-ca-certificates > /dev/null \
-    || REQUIREMENTS="$REQUIREMENTS ca-certificates"
-command -v curl > /dev/null \
-    || REQUIREMENTS="$REQUIREMENTS curl"
-
-if test -n "$REQUIREMENTS"; then
-    test -f /tmp/apt-mark.auto \
-        || apt-mark showauto > /tmp/apt-mark.auto
-    test -s /tmp/apt-mark.auto \
-        && apt-mark manual $(cat /tmp/apt-mark.auto) > /dev/null
-    apt-get --quiet update
-    apt-get --quiet install $REQUIREMENTS \
-            --assume-yes --no-install-recommends
-fi
-
 test -f "$KEYRING_FILE" && mv "$KEYRING_FILE" "$KEYRING_FILE.bak"
-curl --silent --location --show-error \
-     https://files.devuan.org/devuan-archive-keyring.gpg \
-     > "$KEYRING_FILE"
+case "$DEVUAN_CODENAME" in
+    excalibur)
+        cp "/etc/apt/trusted.gpg.d/devuan-keyring-$DEVUAN_CODENAME-archive.gpg" \
+           "$KEYRING_FILE"
+        ;;
+    *)
+        cp /etc/apt/trusted.gpg.d/devuan-keyring-2016-archive.gpg \
+           "$KEYRING_FILE"
+        ;;
+esac
 
 # Create a Devuan root filesystem
 
@@ -94,7 +86,31 @@ debootstrap \
     --components=main \
     "$DEVUAN_CODENAME" "$TARGET" $DEVUAN_DEB_REPO
 
-## Add security and updates suites and upgrade installed packages.
+# Restore the system's original keyring file if we replaced it.
+
+test -f "$KEYRING_FILE.bak" && mv "$KEYRING_FILE.bak" "$KEYRING_FILE"
+
+# Add security and updates suites, insofar these are available.
+#
+# This relies on curl to relay the HTTP status code of the responses
+# we get to determine presence of suites.  If not available, curl is
+# installed temporarily, in such a way that it (and any dependencies
+# it pulls in) can be uninstalled again when its job is done.
+# Note that curl is *not* installed in the debootstrap'd $TARGET but
+# in the system running this script.
+
+command -v curl > /dev/null \
+    || REQUIREMENTS="$REQUIREMENTS curl"
+
+if test -n "$REQUIREMENTS"; then
+    test -f /tmp/apt-mark.auto \
+        || apt-mark showauto > /tmp/apt-mark.auto
+    test -s /tmp/apt-mark.auto \
+        && apt-mark manual $(cat /tmp/apt-mark.auto) > /dev/null
+    apt-get --quiet update
+    apt-get --quiet install $REQUIREMENTS \
+            --assume-yes --no-install-recommends
+fi
 
 for suite in "-security" "-updates"; do
     code=$(curl --silent --location --show-error --head \
@@ -121,6 +137,18 @@ for suite in "-security" "-updates"; do
     esac
 done
 
+# Uninstall any requirements that were installed in the system running
+# this script on a temporary basis.
+
+if test -n "$REQUIREMENTS"; then
+    apt-get --quiet purge $REQUIREMENTS \
+            --assume-yes --auto-remove
+    test -s /tmp/apt-mark.auto \
+         && apt-mark auto $(cat /tmp/apt-mark.auto) > /dev/null
+fi
+
+# Apply any available security and other updates to the chroot.
+
 chroot $TARGET apt-get --quiet update
 chroot $TARGET apt-get --quiet upgrade --assume-yes
 
@@ -137,14 +165,3 @@ chroot $TARGET apt-mark manual devuan-keyring
 
 chroot $TARGET apt-get clean
 chroot $TARGET sh -c 'rm /var/lib/apt/lists/*_dists_*'
-
-# Remove any requirements that were installed by us.
-
-test -f "$KEYRING_FILE.bak" && mv "$KEYRING_FILE.bak" "$KEYRING_FILE"
-
-if test -n "$REQUIREMENTS"; then
-    apt-get --quiet purge $REQUIREMENTS \
-            --assume-yes --auto-remove
-    test -s /tmp/apt-mark.auto \
-         && apt-mark auto $(cat /tmp/apt-mark.auto) > /dev/null
-fi

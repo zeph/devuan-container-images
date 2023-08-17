@@ -17,22 +17,21 @@ export DEBIAN_FRONTEND
 (. /etc/os-release
  test "$ID" = debian || exit 1
  test "$VERSION_CODENAME" = "$DEBIAN_CODENAME" && exit 0
- case "$PRETTY_NAME" in
-     */$DEBIAN_CODENAME) : ;;
-     *) test "$DEBIAN_CODENAME" = sid || exit 1
-        grep "^Suites: $DEBIAN_CODENAME$" \
-             /etc/apt/sources.list.d/debian.sources >/dev/null
- esac)
+ # If still here, we're dealing with testing/unstable codenames which
+ # may or may not have -security and/or -updates suites.
+ grep -E "^Suites: $DEBIAN_CODENAME( $DEBIAN_CODENAME-.*)*$" \
+      /etc/apt/sources.list.d/debian.sources >/dev/null)
 
-
-# If necessary, temporarily install requirements to securely obtain a
-# copy of the Devuan package signing key for use by APT.  Take utmost
-# care not to remove already automatically installed packages in this
-# step.
+# Replace the Debian APT sources with those for Devuan.
+# Non-released "releases" may be missing *-security and/or *-updates.
+# Only add those suites that are available in the package repository.
+#
+# This relies on curl to relay the HTTP status code of the responses
+# we get to determine presence of suites.  If not available, curl is
+# installed temporarily, in such a way that it (and any dependencies
+# it pulls in) can be uninstalled again when its job is done.
 
 REQUIREMENTS=""
-command -v update-ca-certificates > /dev/null \
-    || REQUIREMENTS="$REQUIREMENTS ca-certificates"
 command -v curl > /dev/null \
     || REQUIREMENTS="$REQUIREMENTS curl"
 
@@ -44,14 +43,6 @@ if test -n "$REQUIREMENTS"; then
     apt-get --quiet install $REQUIREMENTS \
             --assume-yes --no-install-recommends
 fi
-
-curl --silent --location --show-error \
-     --output /etc/apt/trusted.gpg.d/devuan-archive-keyring.gpg \
-     https://files.devuan.org/devuan-archive-keyring.gpg
-
-# Replace the Debian APT sources with those for Devuan.
-# Non-released "releases" may be missing *-security and/or *-updates.
-# Only add those suites that are available in the package repository.
 
 > /etc/apt/sources.list
 rm -f /etc/apt/sources.list.d/*
@@ -90,6 +81,19 @@ if test -n "$REQUIREMENTS"; then
          && apt-mark auto $(cat /tmp/apt-mark.auto) > /dev/null
     rm -f /tmp/apt-mark.auto
 fi
+
+# Put required archive keys into place.
+
+case "$DEVUAN_CODENAME" in
+    excalibur)
+        cp /tmp/trusted.gpg.d/devuan-keyring-$DEVUAN_CODENAME-archive.gpg \
+           /etc/apt/trusted.gpg.d/
+        ;;
+    *)
+        cp /tmp/trusted.gpg.d/devuan-keyring-2016-archive.gpg \
+           /etc/apt/trusted.gpg.d/
+        ;;
+esac
 
 # Migrate from Debian to Devuan.
 
